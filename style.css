@@ -92,10 +92,10 @@ p.successMessage{
 	margin: 22px 0;
 }
 
-p.errorMessage{
+div.errorMessage{
 	background: #EFCBC2;
 	color: #D71517;
 	border-left: 5px solid  #DA1527;
-	padding: 9px;
+	padding-left: 20px;
 	margin: 22px 0;
 }
