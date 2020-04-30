@@ -4,7 +4,7 @@ var app = new Vue({
 		showingAddModal: false,
 		showingEditModal: false,
 		showingDeleteModal: false,
-		errorMessage: "",
+		errorMessages: [],
 		successMessage: "",
 		users: [],
 		newUser: {username: "", email: "", mobile: ""},
@@ -12,7 +12,7 @@ var app = new Vue({
 	},
 	mounted(){
 		console.log("mounted")
-		this.getAllUsers();
+		 this.getAllUsers();
 	},
 	methods: {
 		getAllUsers: function(){
@@ -27,52 +27,84 @@ var app = new Vue({
 		},
 
 		saveUser: function(){
+			this.clearMessage();
 			// console.log(app.newUser);
-			var formData = app.toFormData(app.newUser);
-
+			/*var formData = app.toFormData(app.newUser);*/
+			var formData = app.newUser;
+			// console.log(app.newUser);
 			axios.post("http://127.0.0.1:8000/api/crudUser", formData)
-			.then(function(response){
-				
-				app.newUser = {username: "", email: "", mobile: ""};
+			.then(response => {
+		      // console.log(response);
+		      app.newUser = {};
+		      app.getAllUsers();
+		      app.successMessage = response.data.message; 
+		    })
+		    .catch(error => {
+		    	// console.log(error.response);
+		    	/*app.newUser = {};*/
+		    	var uNameErrors = error.response.data.errors.username;
+		      	var emailErrors = error.response.data.errors.email;
+		      	var mobileErrors = error.response.data.errors.mobile;
 
-				if(response.data.error){
-					app.errorMessage = response.data.message; 
-				} else{
-					app.getAllUsers();
-				}
-			});
+		      if (uNameErrors) {
+		      		for (var index in uNameErrors) {   
+  							app.errorMessages.push(uNameErrors[index]);
+						}
+		      }
+		      if (emailErrors) {
+		      		for (var index in emailErrors) {    
+  							app.errorMessages.push(emailErrors[index]);
+						}
+		      }
+		      if (mobileErrors) {
+		      		for (var index in mobileErrors) {    
+  							app.errorMessages.push(mobileErrors[index]);
+						}
+		      }
+		    });
 		},
 
 		updateUser: function(){
-			//console.log(app.newUser);
-			/*var formData = app.toFormData(app.clickedUser);*/
+			this.clearMessage();
 			var formData =app.clickedUser;
 			var id = app.clickedUser.id;
 			axios.put("http://127.0.0.1:8000/api/crudUser/"+id, formData)
-			.then(function(response){				
+			.then(response =>{				
 				app.clickedUser = {};
-				if(response.data.error){
-					app.errorMessage = response.data.message; 
-				} else{
-					app.successMessage = response.data.message; 
-					app.getAllUsers();
-				}
-			});
+				app.getAllUsers();
+		      	app.successMessage = response.data.message; 
+			})
+			.catch(error => {
+		    	var uNameErrors = error.response.data.errors.username;
+		      	var emailErrors = error.response.data.errors.email;
+		      	var mobileErrors = error.response.data.errors.mobile;
+
+		      if (uNameErrors) {
+		      		for (var index in uNameErrors) {   
+  							app.errorMessages.push(uNameErrors[index]);
+						}
+		      }
+		      if (emailErrors) {
+		      		for (var index in emailErrors) {    
+  							app.errorMessages.push(emailErrors[index]);
+						}
+		      }
+		      if (mobileErrors) {
+		      		for (var index in mobileErrors) {    
+  							app.errorMessages.push(mobileErrors[index]);
+						}
+		      }
+		    });
 		},
 
 		deleteUser: function(){
-			//console.log(app.newUser);
-			/*var formData = app.toFormData(app.clickedUser);*/
+			this.clearMessage();
 			var id = app.clickedUser.id;
 			axios.delete("http://127.0.0.1:8000/api/crudUser/"+id,)
-			.then(function(response){				
+			.then(response=>{				
 				app.clickedUser = {};
-				if(response.data.error){
-					app.errorMessage = response.data.message; 
-				} else{
-					app.successMessage = response.data.message; 
-					app.getAllUsers();
-				}
+				app.successMessage = response.data.message; 
+				app.getAllUsers();
 			});
 		},
 
@@ -80,17 +112,10 @@ var app = new Vue({
 			app.clickedUser = user;
 		},
 
-		toFormData: function(obj){
-			var form_data = new FormData();
-		      for ( var key in obj ) {
-		          form_data.append(key, obj[key]);
-		      } 
-		      return form_data;
-		},
-
 		clearMessage: function(){
-			app.errorMessage = "";
+			app.errorMessages = [];
 			app.successMessage = "";
 		}
 	}
+
 })
